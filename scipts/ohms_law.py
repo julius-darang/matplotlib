@@ -68,7 +68,7 @@ ax_side.set_xlim(0, V_MAX)
 ax_side.set_ylim(0, i_linear[-1] * 1.15)
 ax_side.set_xlabel("Voltage (V)")
 ax_side.set_ylabel("Current (A)")
-ax_side.set_title("I = V / R — linear at fixed R", fontsize=11)
+ax_side.set_title("I = V / R — linear at fixed R (60 Ω)", fontsize=11)
 ax_side.grid(True, alpha=0.3)
 
 # ======================= HEADER / FOOTER ================================
@@ -89,19 +89,16 @@ print("saved ohms_law.png")
 static_dot_hero.set_visible(False)
 static_ann.set_visible(False)
 static_ann.arrow_patch.set_visible(False)
-side_plot.set_visible(False)
-side_fill.set_visible(False)
 side_dot_static.set_visible(False)
-
-# Widen y-limits to accommodate the full animation sweep
-ax_side.set_ylim(0, V_MAX / R_MIN * 1.15)
 
 # Precompute sweep data
 n_frames = 100
 r_sweep = np.linspace(R_MIN, R_MAX, n_frames)
-i_sweep = V_FIXED / r_sweep
+i_r_sweep = V_FIXED / r_sweep
 p_sweep = V_FIXED ** 2 / r_sweep
-i_lines = np.array([voltages / r for r in r_sweep])  # (n_frames, 300)
+
+v_sweep = np.linspace(0, V_MAX, n_frames)
+i_v_sweep = v_sweep / R_HIGHLIGHT
 
 # Animated artists — hero
 hero_dot, = ax_hero.plot([], [], "o", color=theme.ACCENT, markersize=10,
@@ -115,7 +112,6 @@ hero_label = ax_hero.text(0.05, 0.95, "", color=theme.FG, fontsize=10,
                           transform=ax_hero.transAxes)
 
 # Animated artists — side
-side_line_anim, = ax_side.plot([], [], color=theme.SERIES[1], linewidth=2.5)
 side_dot_anim, = ax_side.plot([], [], "o", color=theme.SERIES[1], markersize=10,
                               markeredgecolor=theme.FG, markeredgewidth=1.5, zorder=10)
 side_vline_anim, = ax_side.plot([], [], color=theme.SERIES[1], linewidth=1,
@@ -127,20 +123,22 @@ side_label = ax_side.text(0.05, 0.95, "", color=theme.FG, fontsize=10,
 
 def update(frame):
     r = r_sweep[frame]
-    i = i_sweep[frame]
+    i_r = i_r_sweep[frame]
     p = p_sweep[frame]
 
-    # Hero
-    hero_dot.set_data([r], [i])
-    hero_vline.set_data([r, r], [0, i])
-    hero_hline.set_data([R_MIN, r], [i, i])
-    hero_label.set_text(f"R = {r:.1f} \u03a9\nI = {i:.2f} A\nP = {p:.0f} W")
+    v = v_sweep[frame]
+    i_v = i_v_sweep[frame]
 
-    # Side
-    side_line_anim.set_data(voltages, i_lines[frame])
-    side_dot_anim.set_data([V_FIXED], [i])
-    side_vline_anim.set_data([V_FIXED, V_FIXED], [0, i])
-    side_label.set_text(f"R = {r:.1f} \u03a9\nI = {i:.2f} A")
+    # Hero — sweep R at fixed V
+    hero_dot.set_data([r], [i_r])
+    hero_vline.set_data([r, r], [0, i_r])
+    hero_hline.set_data([R_MIN, r], [i_r, i_r])
+    hero_label.set_text(f"R = {r:.1f} \u03a9\nI = {i_r:.2f} A\nP = {p:.0f} W")
+
+    # Side — sweep V at fixed R
+    side_dot_anim.set_data([v], [i_v])
+    side_vline_anim.set_data([v, v], [0, i_v])
+    side_label.set_text(f"V = {v:.1f} V\nI = {i_v:.2f} A")
 
 
 anim = make_animation(fig, update, n_frames, fps=20)
