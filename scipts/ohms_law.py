@@ -45,7 +45,7 @@ ax_main.grid(True, alpha=0.4)
 # annotate the "answer"
 ax_main.scatter([R_FIXED], [i_at_r], color=theme.ACCENT, zorder=5, s=60)
 ax_main.annotate(f"{i_at_r:.2f} A @ {R_FIXED} Ω  ({p_at_r:.0f} W)",
-                  (R_FIXED, i_at_r), xytext=(20, -30),
+                  (R_FIXED, i_at_r), xytext=(20, 30),
                   textcoords="offset points", color=theme.FG, fontsize=10,
                   fontfamily=theme.FONT_MONO,
                   arrowprops=dict(arrowstyle="->", color=theme.MUTED))
