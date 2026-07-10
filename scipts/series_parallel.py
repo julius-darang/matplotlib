@@ -40,22 +40,20 @@ x_pos = np.arange(len(labels))
 bars = ax_main.bar(x_pos, values, color=colors, width=0.5, edgecolor=None)
 
 # label each bar with its value on top
-for bar, val in zip(bars, values):
-    ax_main.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1.5,
+for bar, val in zip(bars, values): 
+    ax_main.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
                  f"{val:.1f} Ω" if val != int(val) else f"{int(val)} Ω",
                  ha="center", va="bottom", fontsize=9, color=theme.FG,
                  fontfamily=theme.FONT_MONO)
 
 # directional arrows for series (up) and parallel (down)
-ax_main.annotate("series  R↑", xy=(3, R_SERIES), xytext=(0, 18),
+ax_main.annotate("series  R↑", xy=(3, R_SERIES), xytext=(-50, 5),
                  textcoords="offset points", ha="center", va="bottom",
-                 color=theme.ACCENT, fontweight="bold", fontfamily=theme.FONT_SANS,
-                 arrowprops=dict(arrowstyle="->", color=theme.ACCENT, lw=2))
+                 color=theme.ACCENT, fontweight="bold", fontfamily=theme.FONT_SANS)
 
-ax_main.annotate("parallel  R↓", xy=(4, R_PARALLEL), xytext=(0, -18),
+ax_main.annotate("parallel  R↓", xy=(4, R_PARALLEL), xytext=(0, 30),
                  textcoords="offset points", ha="center", va="top",
-                 color=theme.SERIES[1], fontweight="bold", fontfamily=theme.FONT_SANS,
-                 arrowprops=dict(arrowstyle="->", color=theme.SERIES[1], lw=2))
+                 color=theme.SERIES[1], fontweight="bold", fontfamily=theme.FONT_SANS)
 
 ax_main.set_xticks(x_pos)
 ax_main.set_xticklabels(labels)
