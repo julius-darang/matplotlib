@@ -6,12 +6,15 @@ simpler concept (fault current falling off with distance from source).
 
 This is the "level 1" starting point before you attempt animation.
 """
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 import theme
-import physics
+from physics import short_circuit
 
 theme.apply()
 
@@ -21,8 +24,8 @@ Z_SOURCE = 0.8            # ohms, source impedance
 Z_LINE_PER_KM = 0.35       # ohms/km, feeder impedance
 distances = np.linspace(0, 10, 200)
 
-i_fault = physics.fault_current_profile(V_SOURCE_KV, Z_SOURCE,
-                                         Z_LINE_PER_KM, distances)
+i_fault = short_circuit.fault_current_profile(V_SOURCE_KV, Z_SOURCE,
+                                               Z_LINE_PER_KM, distances)
 
 # --- layout: hero panel + supporting panel, same bones as the GIF ---
 fig = plt.figure(figsize=(11, 6.2))
@@ -41,8 +44,8 @@ ax_main.set_title("Fault current drops fast as you move down the feeder")
 ax_main.grid(True, alpha=0.4)
 
 # annotate the "answer" the way the GIF marks the electrical center
-i_at_5km = physics.three_phase_fault_current(V_SOURCE_KV, Z_SOURCE,
-                                              Z_LINE_PER_KM, 5.0)
+i_at_5km = short_circuit.three_phase_fault_current(V_SOURCE_KV, Z_SOURCE,
+                                                    Z_LINE_PER_KM, 5.0)
 ax_main.scatter([5], [i_at_5km], color=theme.ACCENT, zorder=5, s=60)
 ax_main.annotate(f"{i_at_5km:,.0f} A @ 5 km", (5, i_at_5km),
                   xytext=(15, 20), textcoords="offset points",
@@ -64,5 +67,5 @@ theme.footer(fig,
     "simplified single-source radial model, no c-factor",
     handle="code.arts")
 
-fig.savefig("short_circuit_example.png", dpi=150)
+fig.savefig("outputs/short_circuit_example.png", dpi=150)
 print("saved short_circuit_example.png")
