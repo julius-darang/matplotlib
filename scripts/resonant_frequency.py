@@ -56,8 +56,9 @@ for decade_exp in range(int(np.log10(F_MIN)), int(np.log10(F_MAX)) + 1):
     freq = 10 ** decade_exp
     if F_MIN <= freq <= F_MAX:
         ax_hero.plot([freq, freq], [-0.3, 0.3], color=theme.MUTED, linewidth=1.2)
-        ax_hero.text(freq, -0.7, str(freq), color=theme.MUTED, fontsize=9,
-                     fontfamily=theme.FONT_MONO, ha="center", va="top")
+        exp = int(np.log10(freq))
+        # ax_hero.text(freq, -0.7, f"$10^{{{exp}}}$", color=theme.MUTED, fontsize=9,
+        #              fontfamily=theme.FONT_MONO, ha="center", va="top")
 
 ax_hero.text(F_MAX * 1.1, 0, "f (Hz)", color=theme.MUTED, fontsize=9,
              fontfamily=theme.FONT_MONO, va="center")
@@ -69,12 +70,12 @@ hero_dot, = ax_hero.plot([F0_BASE], [3.5], "o", color=theme.ACCENT, markersize=1
                          markeredgecolor=theme.FG, markeredgewidth=1.5, zorder=8)
 
 # readout box (axes coords so it stays put regardless of log scale)
-readout_bg = plt.Rectangle((0.04, 0.50), 0.42, 0.42,
-                            color=theme.BG, ec=theme.GRID, linewidth=0.8,
-                            transform=ax_hero.transAxes, zorder=6)
-ax_hero.add_patch(readout_bg)
+# readout_bg = plt.Rectangle((0.04, 0.54), 0.26, 0.25,
+#                             color=theme.BG, ec=theme.GRID, linewidth=0.8,
+#                             transform=ax_hero.transAxes, zorder=6)
+# ax_hero.add_patch(readout_bg)
 
-readout_text = ax_hero.text(0.08, 0.78, "", color=theme.FG, fontsize=9,
+readout_text = ax_hero.text(0.07, 0.78, "", color=theme.FG, fontsize=8,
                             fontfamily=theme.FONT_MONO, va="top",
                             transform=ax_hero.transAxes, zorder=7)
 
