@@ -1,36 +1,48 @@
 # EE & Math Visualisation Series — code.arts
 
-Animated and static visual explanations of fundamental electrical engineering and mathematics concepts using matplotlib. Each topic follows a two-panel "Hero + Side" layout with a consistent dark theme.
+Animated and static visual explanations of fundamental electrical engineering and mathematics concepts using matplotlib. Dark-themed, annotation-light, idea-first.
 
-## Topics
+## Architecture
 
-| Topic | Domain | Script | Output |
+```
+├── physics/           # Pure numpy computation, one module per topic
+│   └── <topic>.py     #   Returns raw numbers/arrays — no plotting, no formatting
+├── scripts/           # Matplotlib figures using FigureBuilder
+│   └── <topic>.py     #   ~35-45 lines typical
+├── outputs/           # Generated PNGs and GIFs
+│   ├── <topic>.png
+│   └── <topic>.gif
+├── builder.py         # FigureBuilder — layout, theme, annotation helpers, save/animate
+├── theme.py           # Dark palette (bg/fg/accent/series/muted), font config, header/footer
+├── animate.py         # FuncAnimation wrapper + PillowWriter GIF export
+├── design.md          # Full design spec and code generation template
+├── pyproject.toml     # Project config & dependencies
+└── Makefile           # Task runner
+```
+
+## Design pattern
+
+**Separation of concerns:**
+- `physics/<topic>.py` — pure numpy functions only. Take parameters, return arrays. No matplotlib imports.
+- `scripts/<topic>.py` — create a `FigureBuilder`, precompute data, plot, annotate, export. The builder handles all styling, layout, header, footer, and output directory.
+- Annotations use builder methods (`add_callout`, `add_threshold`, `add_event_marker`) — at most one of each per panel.
+
+**Layout classes** (defined in `builder.py`):
+| Class | Panels | Figure | Use case |
 |---|---|---|---|
-| Ohm's Law | EE | `scripts/ohms_law.py` | PNG + GIF |
-| RC Time Constant | EE | `scripts/capacitor_rc.py` | GIF |
-| RL Time Constant | EE | `scripts/inductor_rl.py` | GIF |
-| Resonant Frequency | EE | `scripts/resonant_frequency.py` | GIF |
-| Series vs Parallel | EE | `scripts/series_parallel.py` | PNG + GIF |
-| Short Circuit | EE | `scripts/short_circuit.py` | PNG |
-| Voltage Divider | EE | `scripts/voltage_divider.py` | GIF |
-| Wire Resistance | EE | `scripts/wire_resistance.py` | PNG + GIF |
-| Power Dissipation | EE | `scripts/power_dissipation.py` | PNG + GIF |
-| AC Waveform | EE | `scripts/ac_waveform.py` | GIF |
-| Slope-Intercept Form | Math | `scripts/slope_intercept.py` | PNG + GIF |
+| `SinglePanel` | 1 | 7×7" | Single self-contained relationship |
+| `HeroAndSide` | 2 (1×2) | 11×6.2" | Hero + one supporting/consequence view |
+| `StackedPair` | 2 (2×1) | 11×6.2" | Same x-axis, before/after or charge/discharge |
+| `HeroAndStack` | 3 (1×2, nested) | 11×6.2" | Hero + two side views on different clocks |
+| `QuadPanel` | 4 (2×2) | 11×6.2" | Four roughly equal comparison views |
 
-## Structure
+**Animation** — precompute all data upfront, create empty artists, update in place via `set_data`/`set_offsets`/`set_text`. No `ax.clear()` or re-plotting per frame.
 
-```
-├── physics/          # Pure computation, one module per topic
-├── scripts/          # matplotlib figures and animations
-├── outputs/          # Generated PNGs and GIFs
-├── builder.py        # FigureBuilder — boilerplate reduction
-├── theme.py          # Dark palette, header/footer helpers
-├── animate.py        # FuncAnimation wrapper + GIF export
-├── prompt.md         # Code generation template
-├── pyproject.toml    # Project config & dependencies
-└── Makefile          # Task runner
-```
+## Title & narrative discipline
+
+- `title=` states the surprising claim the animation proves, not the topic's textbook name (e.g. "why fault current falls off," not "Short Circuit Current").
+- `subtitle=` states the mechanism in one line.
+- `footer=` states the numeric assumptions that make the model a simplification.
 
 ## Quick start
 
@@ -51,32 +63,38 @@ make clean                    # remove all outputs
 from builder import FigureBuilder
 
 fig = FigureBuilder(
-    title="Topic Title",
-    subtitle="One-liner explanation",
-    footer="param=value  assumptions",
+    title="The surprising claim, not the topic name",
+    subtitle="One-liner explaining the mechanism",
+    footer="param1=...  param2=...  assumptions note",
 )
 
-# Hero panel (left)
+# Precompute data
+x = np.linspace(0, 10, 300)
+y = my_func(x, ...)
+
+# Hero panel (left, wider)
 fig.ax_hero.plot(x, y, color=fig.accent, linewidth=2.5)
-fig.ax_hero.set_xlabel("Label"); fig.ax_hero.set_ylabel("Label")
+fig.ax_hero.fill_between(x, y, color=fig.accent, alpha=0.08)
+fig.ax_hero.set_xlabel("Label")
+fig.ax_hero.set_ylabel("Label")
+fig.ax_hero.set_title("Descriptive title", fontsize=11)
 fig.ax_hero.grid(True, alpha=0.3)
 
-# Side panel (right)
-fig.ax_side.plot(x, y2, color=fig.series[1], linewidth=2.5)
-fig.ax_side.set_title("Title", fontsize=11); fig.ax_side.grid(True, alpha=0.3)
+# Annotation layer
+fig.add_callout(fig.ax_hero, x0, y0, f"τ={tau:.2f}s  63% at t={tau:.2f}s")
+fig.add_threshold(fig.ax_hero, value=limit, axis="y", label="insulation limit")
+fig.add_event_marker(fig.ax_hero, x0, y0, label="breakdown")
 
-fig.save("my_topic.png")              # static export
-fig.animate(100, update_fn, "my_topic.gif")  # animated export
+# Side panel (right)
+fig.ax_side.plot(x, y_secondary, color=fig.series[1], linewidth=2.5)
+fig.ax_side.set_title("Descriptive title", fontsize=11)
+fig.ax_side.grid(True, alpha=0.3)
+
+fig.save("my_topic.png")
+# fig.animate(100, update_fn, "my_topic.gif", fps=20)
 ```
 
-See `prompt.md` for the full template, or `scripts/sample.py` for a working example.
-
-## Design
-
-- **`physics/`** — pure functions (no plotting) for each concept
-- **`FigureBuilder`** (`builder.py`) — creates the figure, grid, header, footer, handles save/animate/close. Dramatically reduces boilerplate (~35 lines per script vs ~130)
-- **`theme.py`** — dark background (`#0a0a0a`), orange accent (`#d77600`), DM Mono / Inter fonts. Call via builder automatically
-- **`animate.py`** — wraps `matplotlib.animation.FuncAnimation` with PillowWriter for GIF export
+See `design.md` for the full spec and production pipeline.
 
 ## Requirements
 
