@@ -75,6 +75,45 @@ class FigureBuilder:
     def font_sans(self):
         return theme.FONT_SANS
 
+    def add_callout(self, ax, x, y, text):
+        ax.scatter([x], [y], color=self.accent, zorder=5, s=60)
+        ax.annotate(
+            text, (x, y),
+            xytext=(10, -30), textcoords="offset points",
+            color=self.fg, fontsize=9, fontfamily=self.font_mono,
+            bbox=dict(boxstyle="round,pad=0.3", facecolor=self.bg,
+                      edgecolor=self.muted, linewidth=0.5),
+            arrowprops=dict(arrowstyle="->", color=self.muted, lw=0.8),
+        )
+
+    def add_threshold(self, ax, value, axis, label=None):
+        if axis == "y":
+            ax.axhline(value, color=self.muted, linestyle="--",
+                       linewidth=1.2, alpha=0.7)
+            if label:
+                xlim = ax.get_xlim()
+                ax.text(xlim[1], value, f"  {label}", color=self.muted,
+                        fontsize=8, fontfamily=self.font_mono, va="center")
+        elif axis == "x":
+            ax.axvline(value, color=self.muted, linestyle="--",
+                       linewidth=1.2, alpha=0.7)
+            if label:
+                ylim = ax.get_ylim()
+                ax.text(value, ylim[1], f"{label}  ", color=self.muted,
+                        fontsize=8, fontfamily=self.font_mono, ha="right", va="bottom")
+
+    def add_event_marker(self, ax, x, y, label=None):
+        ax.scatter([x], [y], marker="*", color=self.accent, s=120,
+                   edgecolor=self.fg, linewidth=0.8, zorder=6)
+        if label:
+            ax.annotate(
+                label, (x, y),
+                xytext=(0, 20), textcoords="offset points",
+                ha="center", va="bottom",
+                color=self.fg, fontsize=9, fontfamily=self.font_mono,
+                arrowprops=dict(arrowstyle="->", color=self.muted, lw=0.8),
+            )
+
     def save(self, path, dpi=150):
         path = os.path.join("outputs", path) if not path.startswith("outputs/") else path
         self.fig.savefig(path, dpi=dpi)

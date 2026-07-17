@@ -103,12 +103,12 @@ Shared across all layouts: Inter (sans) for headers/labels, DM Mono (mono) for d
 - Use when both panels share the same x-axis (e.g. charge vs discharge, before/after).
 
 ### 3 panels — `HeroAndStack`
-- Figure: 11 x 6.2 inches (current default).
+- Figure: 13 x 7.5 inches (current default).
 - GridSpec: 1x2 outer (width_ratios=[1.5, 1]), right column split via nested 2x1 subgridspec (hspace=0.35); hero margins as `HeroAndSide`.
 - Use when the hero panel needs two side views on different clocks/frames (e.g. phasor + time-domain, or event + downstream consequence).
 
 ### 3-4 panels — `QuadPanel`
-- Figure: 11 x 6.2 inches (current default), or 11 x 8 inches if labels feel cramped.
+- Figure: 12.5 x 9 inches (current default), or 11 x 8 inches if labels feel cramped.
 - GridSpec: 2x2, margins: left=0.07, right=0.96, top=0.82, bottom=0.10, wspace=0.28, hspace=0.35.
 - Use only when no single panel is clearly dominant — four roughly equal comparison views.
 
