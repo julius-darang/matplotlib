@@ -6,12 +6,22 @@ Animated and static visual explanations of fundamental electrical engineering an
 
 ```
 ├── physics/           # Pure numpy computation, one module per topic
-│   └── <topic>.py     #   Returns raw numbers/arrays — no plotting, no formatting
+│   ├── phase_1/       #   Foundational topics
+│   │   └── <topic>.py #     Returns raw numbers/arrays — no plotting, no formatting
+│   └── phase_2/       #   Advanced topics (work in progress)
+│       └── <topic>.py
 ├── scripts/           # Matplotlib figures using FigureBuilder
-│   └── <topic>.py     #   ~35-45 lines typical
+│   ├── phase_1/       #   Foundational topic scripts
+│   │   └── <topic>.py #     ~35-45 lines typical
+│   └── phase_2/       #   Advanced topic scripts
+│       └── <topic>.py
 ├── outputs/           # Generated PNGs and GIFs
-│   ├── <topic>.png
-│   └── <topic>.gif
+│   ├── phase_1/       #   Outputs for foundational topics
+│   │   ├── <topic>.png
+│   │   └── <topic>.gif
+│   └── phase_2/       #   Outputs for advanced topics
+│       ├── <topic>.png
+│       └── <topic>.gif
 ├── builder.py         # FigureBuilder — layout, theme, annotation helpers, save/animate
 ├── theme.py           # Dark palette (bg/fg/accent/series/muted), font config, header/footer
 ├── animate.py         # FuncAnimation wrapper + PillowWriter GIF export
@@ -23,8 +33,8 @@ Animated and static visual explanations of fundamental electrical engineering an
 ## Design pattern
 
 **Separation of concerns:**
-- `physics/<topic>.py` — pure numpy functions only. Take parameters, return arrays. No matplotlib imports.
-- `scripts/<topic>.py` — create a `FigureBuilder`, precompute data, plot, annotate, export. The builder handles all styling, layout, header, footer, and output directory.
+- `physics/phase_<N>/<topic>.py` — pure numpy functions only. Take parameters, return arrays. No matplotlib imports.
+- `scripts/phase_<N>/<topic>.py` — create a `FigureBuilder`, precompute data, plot, annotate, export. The builder handles all styling, layout, header, footer, and output directory.
 - Annotations use builder methods (`add_callout`, `add_threshold`, `add_event_marker`) — at most one of each per panel.
 
 **Layout classes** (defined in `builder.py`):
@@ -33,8 +43,8 @@ Animated and static visual explanations of fundamental electrical engineering an
 | `SinglePanel` | 1 | 7×7" | Single self-contained relationship |
 | `HeroAndSide` | 2 (1×2) | 11×6.2" | Hero + one supporting/consequence view |
 | `StackedPair` | 2 (2×1) | 11×6.2" | Same x-axis, before/after or charge/discharge |
-| `HeroAndStack` | 3 (1×2, nested) | 11×6.2" | Hero + two side views on different clocks |
-| `QuadPanel` | 4 (2×2) | 11×6.2" | Four roughly equal comparison views |
+| `HeroAndStack` | 3 (1×2, nested) | 13×7.5" | Hero + two side views on different clocks |
+| `QuadPanel` | 4 (2×2) | 12.5×9" | Four roughly equal comparison views |
 
 **Animation** — precompute all data upfront, create empty artists, update in place via `set_data`/`set_offsets`/`set_text`. No `ax.clear()` or re-plotting per frame.
 
@@ -49,15 +59,15 @@ Animated and static visual explanations of fundamental electrical engineering an
 ```sh
 pip install -e .              # install project in dev mode
 make all                      # regenerate all outputs
-make topic/ohms_law           # run a single topic
+make topic/phase_1/ohms_law   # run a single topic (phase_1 or phase_2)
 make watch                    # auto-rebuild on file change
 make clean                    # remove all outputs
 ```
 
 ## Creating a new topic
 
-1. Add a computation module in `physics/<topic>.py` (pure numpy, no plotting)
-2. Create a script in `scripts/<topic>.py` using `FigureBuilder`:
+1. Add a computation module in `physics/phase_<N>/<topic>.py` (pure numpy, no plotting)
+2. Create a script in `scripts/phase_<N>/<topic>.py` using `FigureBuilder`:
 
 ```python
 from builder import FigureBuilder
