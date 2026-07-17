@@ -1,53 +1,107 @@
 # EE & Math Visualisation Series — code.arts
 
-Animated and static visual explanations of fundamental electrical engineering concepts using matplotlib. Each topic follows a two-panel "Hero + Side" layout with a consistent dark theme.
+Animated and static visual explanations of fundamental electrical engineering and mathematics concepts using matplotlib. Dark-themed, annotation-light, idea-first.
 
-## Topics
-
-| Topic | File | Output |
-|---|---|---|
-| **Ohm's Law** — I vs R (hyperbola) and I vs V (line) | `scripts/ohms_law.py` | PNG + GIF |
-| **RC Time Constant** — capacitor charge/discharge | `scripts/capacitor_rc.py` | GIF |
-| **RL Time Constant** — inductor buildup/decay | `scripts/inductor_rl.py` | GIF |
-| **Resonant Frequency** — f₀ sensitivity to C | `scripts/resonant_frequency.py` | GIF |
-| **Series vs Parallel** — equivalent resistance | `scripts/series_parallel.py` | PNG |
-| **Short Circuit** — fault current vs distance | `scripts/short_circuit.py` | PNG |
-| **Voltage Divider** — Vout swept across R₂ range | `scripts/voltage_divider.py` | GIF |
-
-## Structure
+## Architecture
 
 ```
-├── physics/          # Pure computation, one module per topic
-├── scripts/          # matplotlib figures and animations
-├── theme.py          # Dark palette, header/footer helpers
-├── animate.py        # FuncAnimation wrapper + GIF export
-└── outputs/          # Generated PNGs and GIFs
+├── physics/           # Pure numpy computation, one module per topic
+│   └── <topic>.py     #   Returns raw numbers/arrays — no plotting, no formatting
+├── scripts/           # Matplotlib figures using FigureBuilder
+│   └── <topic>.py     #   ~35-45 lines typical
+├── outputs/           # Generated PNGs and GIFs
+│   ├── <topic>.png
+│   └── <topic>.gif
+├── builder.py         # FigureBuilder — layout, theme, annotation helpers, save/animate
+├── theme.py           # Dark palette (bg/fg/accent/series/muted), font config, header/footer
+├── animate.py         # FuncAnimation wrapper + PillowWriter GIF export
+├── design.md          # Full design spec and code generation template
+├── pyproject.toml     # Project config & dependencies
+└── Makefile           # Task runner
 ```
+
+## Design pattern
+
+**Separation of concerns:**
+- `physics/<topic>.py` — pure numpy functions only. Take parameters, return arrays. No matplotlib imports.
+- `scripts/<topic>.py` — create a `FigureBuilder`, precompute data, plot, annotate, export. The builder handles all styling, layout, header, footer, and output directory.
+- Annotations use builder methods (`add_callout`, `add_threshold`, `add_event_marker`) — at most one of each per panel.
+
+**Layout classes** (defined in `builder.py`):
+| Class | Panels | Figure | Use case |
+|---|---|---|---|
+| `SinglePanel` | 1 | 7×7" | Single self-contained relationship |
+| `HeroAndSide` | 2 (1×2) | 11×6.2" | Hero + one supporting/consequence view |
+| `StackedPair` | 2 (2×1) | 11×6.2" | Same x-axis, before/after or charge/discharge |
+| `HeroAndStack` | 3 (1×2, nested) | 11×6.2" | Hero + two side views on different clocks |
+| `QuadPanel` | 4 (2×2) | 11×6.2" | Four roughly equal comparison views |
+
+**Animation** — precompute all data upfront, create empty artists, update in place via `set_data`/`set_offsets`/`set_text`. No `ax.clear()` or re-plotting per frame.
+
+## Title & narrative discipline
+
+- `title=` states the surprising claim the animation proves, not the topic's textbook name (e.g. "why fault current falls off," not "Short Circuit Current").
+- `subtitle=` states the mechanism in one line.
+- `footer=` states the numeric assumptions that make the model a simplification.
+
+## Quick start
+
+```sh
+pip install -e .              # install project in dev mode
+make all                      # regenerate all outputs
+make topic/ohms_law           # run a single topic
+make watch                    # auto-rebuild on file change
+make clean                    # remove all outputs
+```
+
+## Creating a new topic
+
+1. Add a computation module in `physics/<topic>.py` (pure numpy, no plotting)
+2. Create a script in `scripts/<topic>.py` using `FigureBuilder`:
+
+```python
+from builder import FigureBuilder
+
+fig = FigureBuilder(
+    title="The surprising claim, not the topic name",
+    subtitle="One-liner explaining the mechanism",
+    footer="param1=...  param2=...  assumptions note",
+)
+
+# Precompute data
+x = np.linspace(0, 10, 300)
+y = my_func(x, ...)
+
+# Hero panel (left, wider)
+fig.ax_hero.plot(x, y, color=fig.accent, linewidth=2.5)
+fig.ax_hero.fill_between(x, y, color=fig.accent, alpha=0.08)
+fig.ax_hero.set_xlabel("Label")
+fig.ax_hero.set_ylabel("Label")
+fig.ax_hero.set_title("Descriptive title", fontsize=11)
+fig.ax_hero.grid(True, alpha=0.3)
+
+# Annotation layer
+fig.add_callout(fig.ax_hero, x0, y0, f"τ={tau:.2f}s  63% at t={tau:.2f}s")
+fig.add_threshold(fig.ax_hero, value=limit, axis="y", label="insulation limit")
+fig.add_event_marker(fig.ax_hero, x0, y0, label="breakdown")
+
+# Side panel (right)
+fig.ax_side.plot(x, y_secondary, color=fig.series[1], linewidth=2.5)
+fig.ax_side.set_title("Descriptive title", fontsize=11)
+fig.ax_side.grid(True, alpha=0.3)
+
+fig.save("my_topic.png")
+# fig.animate(100, update_fn, "my_topic.gif", fps=20)
+```
+
+See `design.md` for the full spec and production pipeline.
 
 ## Requirements
 
 - Python ≥ 3.9
 - `matplotlib`
 - `numpy`
-
-```sh
-pip install matplotlib numpy
-```
-
-## Usage
-
-```sh
-python scripts/ohms_law.py
-```
-
-Outputs appear in `outputs/`. To edit parameters, modify the constants at the top of each script.
-
-## Design
-
-- **`physics/`** — pure functions (no plotting) for each circuit law.
-- **`scripts/`** — imports from `physics`, builds matplotlib figures, exports PNG/GIF.
-- **`theme.py`** — dark background, orange accent, DM Mono / Inter fonts. Call `theme.apply()` once per script.
-- **`animate.py`** — wraps `matplotlib.animation.FuncAnimation`; pass a figure, an update callback, and a frame count.
+- `pillow` (for GIF export)
 
 ## Credits
 
