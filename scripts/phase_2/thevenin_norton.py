@@ -39,7 +39,7 @@ fig = FigureBuilder(
 )
 
 
-def _draw_circuit(netlist, node_positions, scale=2):
+def _draw_circuit(netlist, node_positions, scale=0.7):
     sch = tempfile.NamedTemporaryFile(suffix=".sch", mode="w", delete=False)
     sch.write(netlist)
     sch.close()
@@ -75,7 +75,7 @@ orig_nodes = {
 orig_net = (
     "V 1 0 12; down, color=gray\n"
     "R1 1 2 4; right, color=gray\n"
-    "R2 2 0 6; down, color=gray\n"
+    "R2 2 0_2 6; down, color=gray\n"
     "W 0 0_2; right\n"
 )
 orig_img = _draw_circuit(orig_net, orig_nodes)
@@ -116,7 +116,8 @@ nor_nodes = {
 }
 nor_net = (
     f"In 1 0 {I_N:.1f}; down, color=blue\n"
-    f"Rth 1 0 {R_TH:.1f}; right, color=blue\n"
+    f"Rth 1 0_3 {R_TH:.1f}; right, color=blue\n"
+    "W 0_3 0_2; down\n"
     "W 0 0_2; right\n"
 )
 nor_img = _draw_circuit(nor_net, nor_nodes)
