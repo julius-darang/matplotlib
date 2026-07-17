@@ -1,13 +1,19 @@
-SCRIPTS := $(wildcard scripts/*.py)
-TOPICS  := $(patsubst scripts/%.py,%,$(SCRIPTS))
-TARGETS := $(addprefix topic/,$(TOPICS))
+PHASE1_SCRIPTS := $(wildcard scripts/phase_1/*.py)
+PHASE2_SCRIPTS := $(wildcard scripts/phase_2/*.py)
+PHASE1_TOPICS  := $(patsubst scripts/phase_1/%.py,phase_1/%,$(PHASE1_SCRIPTS))
+PHASE2_TOPICS  := $(patsubst scripts/phase_2/%.py,phase_2/%,$(PHASE2_SCRIPTS))
+TOPICS         := $(PHASE1_TOPICS) $(PHASE2_TOPICS)
+TARGETS        := $(addprefix topic/,$(TOPICS))
 
 .PHONY: all $(TARGETS) clean watch install
 
 all: $(TARGETS)
 
-$(TARGETS): topic/%: scripts/%.py outputs
-	python -m scripts.$*
+topic/phase_1/%: scripts/phase_1/%.py outputs
+	python -m scripts.phase_1.$*
+
+topic/phase_2/%: scripts/phase_2/%.py outputs
+	python -m scripts.phase_2.$*
 
 outputs:
 	mkdir -p outputs

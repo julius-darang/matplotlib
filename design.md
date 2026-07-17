@@ -3,9 +3,9 @@
 ## Directory structure
 
 ```
-physics/<topic>.py   — pure computation (no matplotlib). One function per concept.
-scripts/<topic>.py   — matplotlib figure using FigureBuilder. ~35-45 lines typical.
-outputs/<topic>.png  /  outputs/<topic>.gif
+physics/phase_<N>/<topic>.py   — pure computation (no matplotlib). One function per concept.
+scripts/phase_<N>/<topic>.py   — matplotlib figure using FigureBuilder. ~35-45 lines typical.
+outputs/phase_<N>/<topic>.png  /  outputs/phase_<N>/<topic>.gif
 ```
 
 ## Quick reference
@@ -24,7 +24,7 @@ script — use the FigureBuilder:
 ```python
 import numpy as np
 from builder import FigureBuilder
-from physics.my_topic import my_func
+from physics.phase_1.my_topic import my_func
 
 # ALL styling, layout, header, footer, and output dir are handled by the builder.
 fig = FigureBuilder(
